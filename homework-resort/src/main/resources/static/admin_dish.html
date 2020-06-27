@@ -1,0 +1,66 @@
+<div id="app">
+    <table class="table table-hover">
+        <thead class="thead-light">
+        <tr>
+            <th>菜名</th>
+            <th>价格</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="i in dish">
+            <td>{{ i.dishtype }}</td>
+            <td>{{ i.price }}</td>
+            <td>
+                <button class="btn btn-danger" @click="delDish(i.dishtype)">删除</button>
+            </td>
+        </tr>
+        <tr>
+            <td><input id="newDishType" type="text" class="form-control"></td>
+            <td><input id="newDishPrice" type="text" class="form-control"></td>
+            <td>
+                <button type="button" class="btn btn-primary" @click="addDish">新增</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            dish: null
+        },
+        methods: {
+            addDish: function () {
+                var data = {
+                    type: $("#newDishType").val(),
+                    price: $("#newDishPrice").val()
+                }
+                axios.post('admin/dish', data)
+                    .then(function (response) {
+                        $("#newDishType").val("")
+                        $("#newDishPrice").val("")
+                        app.$mount()
+                    })
+                    .catch(function (error) {
+                        alert("发生错误：" + error.message)
+                    })
+            },
+            delDish: function (dishtype) {
+                if (!confirm("确定删除 " + dishtype + " 吗？")) return
+                axios.delete('admin/dish/' + dishtype).then(response => {
+                    app.$mount()
+                }).catch(error => {
+                    alert("发生错误：" + error.message)
+                })
+            }
+        },
+        mounted() {
+            axios.get('user/dish').then(response => {
+                this.dish = response.data
+            })
+        }
+    })
+</script>

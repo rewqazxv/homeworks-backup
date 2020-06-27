@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf8">
+</head>
+
+<body>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+        $.ajax({
+            url: "me/role",
+            success: function (data) {
+                if (data === "ADMIN")
+                    window.location.replace("admin_dashboard.html")
+                else if (data === "USER")
+                    window.location.replace("user_dashboard.html");
+            }
+        })
+    </script>
+</body>
+
+</html>

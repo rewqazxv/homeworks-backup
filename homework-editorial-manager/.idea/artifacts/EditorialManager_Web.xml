@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="EditorialManager:Web">
+    <output-path>$PROJECT_DIR$/out/artifacts/EditorialManager_Web</output-path>
+    <root id="archive" name="EditorialManager_Web.war">
+      <element id="javaee-facet-resources" facet="EditorialManager/web/Web" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="EditorialManager" />
+        </element>
+        <element id="directory" name="lib">
+          <element id="library" level="project" name="lib" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>

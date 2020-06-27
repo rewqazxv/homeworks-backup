@@ -1,0 +1,21 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>icon.png</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file alias="document-edit">images/document-edit.png</file>
+        <file alias="document-new">images/document-new.png</file>
+        <file alias="document-open">images/document-open.png</file>
+        <file alias="document-save-as">images/document-save-as.png</file>
+        <file alias="document-save">images/document-save.png</file>
+        <file alias="edit-find">images/edit-find.png</file>
+        <file alias="list-add">images/list-add.png</file>
+        <file alias="list-remove">images/list-remove.png</file>
+        <file alias="application-exit">images/application-exit.png</file>
+        <file alias="help-about">images/help-about.png</file>
+        <file alias="qt">images/qt.png</file>
+    </qresource>
+    <qresource prefix="/translations">
+        <file>cn.qm</file>
+    </qresource>
+</RCC>

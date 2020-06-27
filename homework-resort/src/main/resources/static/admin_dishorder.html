@@ -1,0 +1,66 @@
+<div id="app">
+    <table class="table table-hover">
+        <thead class="thead-light">
+        <tr>
+            <th>id</th>
+            <th>点餐</th>
+            <th>时间</th>
+            <th>房间订单id</th>
+            <th>房间</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="i in dishorderAll">
+            <td>{{ i.dishorderid }}</td>
+            <td>{{ i.dishtype }}</td>
+            <td>{{ i.dishorderdate }}</td>
+            <td>{{ i.roomorderid }}</td>
+            <td>{{ roomorderActive.has(i.roomorderid) ? roomorderActive.get(i.roomorderid).roomnum : '' }}</td>
+            <td>{{ i.done === 1 ? '✓' : '' }}</td>
+            <td>
+                <button :hidden="i.done === 1" type="button" class="btn btn-success"
+                        @click="dishDone(i.dishorderid, i.dishtype)">
+                    送达
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            dishorderAll: null,
+            roomorderActive: null
+        },
+        methods: {
+            dishDone: function (id, type) {
+                if (!confirm(type + " 送达了吗？")) return
+                axios.put('admin/dishorder/' + id).then(response => {
+                    app.$mount()
+                }).catch(error => {
+                    alert("发生错误：" + error.message)
+                })
+            }
+        },
+        mounted() {
+            axios.get('admin/roomorder/active').then(response => {
+                var r = new Map();
+                for (i of response.data)
+                    r.set(i.roomorderid, i)
+                this.roomorderActive = r
+            })
+            axios.get('admin/dishorder').then(response => {
+                var json = response.data
+                for (i of json) {
+                    i.dishorderdate = moment(i.dishorderdate).format('YYYY-MM-DD  h:mm:ss a')
+                }
+                this.dishorderAll = response.data
+            })
+        }
+    })
+</script>

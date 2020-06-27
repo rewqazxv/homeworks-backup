@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>常大度假村 顾客端</title>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        h1 {
+            margin: 50px 0 0 0;
+        }
+
+        nav {
+            background-color: #405c78;
+            border-radius: 4px;
+            margin: 10px 0 20px 0;
+        }
+
+        nav a {
+            color: white;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            color: lavender;
+        }
+
+        th, td {
+            text-align: center;
+        }
+
+        #payload {
+            margin: 50px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div id="head">
+        <h1>常大度假村 顾客端</h1>
+        <p class="text-right">欢迎光临，{{ myInfo.name }}</p>
+        <nav class="nav nav-tabs">
+            <a v-for="(item, index) in navItems"
+               :href="item.page"
+               class="nav-item nav-link" :class="{ active: index === 0 }"
+               onclick="load(this); return false">
+                {{ item.name }}
+            </a>
+            <a class="nav-item nav-link ml-auto" href="logout">注销</a>
+        </nav>
+    </div>
+    <div id="payload"></div>
+</div>
+
+<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.min.js"></script>
+<script src="https://cdn.bootcss.com/moment.js/2.24.0/moment.min.js"></script>
+<script>
+    var head = new Vue({
+        el: '#head',
+        data: {
+            navItems: [
+                {name: '我的订单', page: 'user_roomorder.html'},
+                {name: '新增订房', page: 'user_addroomorder.html'},
+                {name: '订餐', page: 'user_dish.html'}
+            ],
+            myInfo: null
+        },
+        mounted() {
+            axios.get('me').then(response => (this.myInfo = response.data))
+        }
+    })
+
+    function load(e) {
+        $("#payload").load($(e).attr('href'))
+        $('.nav a').removeClass('active')
+        $(e).addClass("active")
+    }
+
+    $("#payload").load(head.navItems[0].page)
+
+    setInterval(function () {
+        app.$mount()
+        // console.log("refresh")
+    }, 5000);
+</script>
+</body>
+
+</html>

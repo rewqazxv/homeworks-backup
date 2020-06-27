@@ -1,0 +1,85 @@
+<div id="app">
+    <table class="table table-hover">
+        <thead class="thead-light">
+        <tr>
+            <th>点餐</th>
+            <th>时间</th>
+            <th>状态</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="i in myDishorder">
+            <td>{{ i.dishtype }}</td>
+            <td>{{ i.dishorderdate }}</td>
+            <td>{{ i.done === 1 ? '已送达' : '准备中' }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <form class="form-inline ml-auto mr-auto" style="max-width: 600px">
+        <div class="row ml-auto mr-auto">
+            <label>点选：</label>
+            <select id="dishSelect" class="form-control">
+                <option v-for="i in dish" v-bind:value="i.dishtype">{{ i.dishtype + " ￥" + i.price }}
+                </option>
+            </select>
+        </div>
+
+        <div class="row ml-auto mr-auto">
+            <label>送达：</label>
+            <select id="roomSelect" class="form-control">
+                <option v-for="i in myRoom" v-bind:value="i.roomnum">{{ i.roomnum }}</option>
+            </select>
+        </div>
+
+        <div class="row ml-auto mr-auto">
+            <button type="button" class="btn btn-primary" onclick="newDishOrder()">我要这个</button>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            myDishorder: null,
+            dish: null,
+            myRoomOccupied: null,
+        },
+        mounted() {
+            axios.get('me/dishorder').then(response => {
+                var json = response.data
+                for (i of json) {
+                    i.dishorderdate = moment(i.dishorderdate).format('YYYY-MM-DD  h:mm:ss a')
+                }
+                this.myDishorder = response.data
+            })
+            axios.get('user/dish').then(response => {
+                this.dish = response.data
+            })
+            axios.get('me/room').then(response => {
+                var r = []
+                for (i of response.data)
+                    if (i.status === 'occupied')
+                        r.push(i)
+                this.myRoom = r
+            })
+        }
+    })
+
+    function newDishOrder() {
+        var dish = $("#dishSelect").val()
+        var room = $("#roomSelect").val()
+        if (!confirm("点餐 " + dish + " ?")) return
+        axios.post('user/dishorder', {
+            dish: dish,
+            room: room
+        }).then(function (response) {
+            alert("点餐成功")
+            app.$mount()
+        }).catch(function (error) {
+            alert("发生错误：" + error.message)
+        })
+    }
+</script>

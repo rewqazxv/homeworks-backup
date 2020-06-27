@@ -1,0 +1,59 @@
+<div id="app">
+    <form class="form-group card ml-auto mr-auto" style="max-width: 500px; padding: 40px">
+        <div>
+            <label>房间：</label>
+            <select id="typeSelect" class="form-control">
+                <option v-for="i in room" v-bind:value="i[0]">
+                    {{ i[1].roomtype + ' ' + i[1].roomnum + ', ￥' + i[1].price + ', 温泉￥' + i[1].spaprice }}
+                </option>
+            </select>
+        </div>
+
+        <div class="form-check form-check-inline" style="margin-top: 20px">
+            <label>预订温泉：</label>
+            <input id="spaSelect" type="checkbox" class="form-check-input">
+        </div>
+
+        <div style="margin-top: 20px">
+            <button type="button" class="btn btn-primary btn-block" onclick="add()">提交</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            room: null
+        },
+        mounted() {
+            axios.get('user/room/available').then(response => {
+                var r = new Map()
+                for (i of response.data)
+                    r.set(i.roomnum, i)
+                this.room = r
+            })
+        }
+    })
+
+    $(".datepicker").datepicker({
+        language: "zh-CN"
+    })
+
+    function add() {
+        var data = {
+            roomnum: $("#typeSelect").val(),
+            spa: $("#spaSelect").is(':checked')
+        }
+        if (!confirm("您确定预订今日的 " + app.room.get(data.roomnum).roomtype + ' ' + data.roomnum + " 吗？")) return
+
+        axios.post('me/roomorder', data)
+            .then(function (response) {
+                alert("预订成功！")
+                app.$mount()
+            })
+            .catch(function (error) {
+                alert("发生错误：" + error.message)
+            });
+    }
+</script>

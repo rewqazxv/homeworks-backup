@@ -1,0 +1,78 @@
+<div id="app">
+    <table class="table table-hover">
+        <thead class="thead-light">
+        <tr>
+            <th>房间号</th>
+            <th>房间类型</th>
+            <th>价格</th>
+            <th>状态</th>
+            <th>用户</th>
+            <th>温泉价格</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="i in roomAll">
+            <td>{{ i.roomnum }}</td>
+            <td>{{ i.roomtype }}</td>
+            <td>{{ i.price }}</td>
+            <td>{{ i.status_cn }}</td>
+            <td>{{ i.username }}</td>
+            <td>{{ i.spaprice }}</td>
+            <td>
+                <button :hidden="i.status!=='booked'" class="btn btn-primary" @click="checkin(i.roomnum)">入住</button>
+                <button :hidden="i.status!=='dirty'" class="btn btn-success" @click="clean(i.roomnum)">打扫</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            roomAll: null
+        },
+        methods: {
+            checkin: function (roomnum) {
+                axios.put('admin/room/' + roomnum, {
+                    action: 'checkin'
+                }).then(response => {
+                    app.$mount()
+                }).catch(error => {
+                    alert("发生错误：" + error.message)
+                })
+            },
+            clean: function (roomnum) {
+                axios.put('admin/room/' + roomnum, {
+                    action: 'clean'
+                }).then(response => {
+                    app.$mount()
+                }).catch(error => {
+                    alert("发生错误：" + error.message)
+                })
+            }
+        },
+        mounted() {
+            axios.get('admin/room').then(response => {
+                for (i of response.data)
+                    switch (i.status) {
+                        case 'empty':
+                            i.status_cn = '空闲'
+                            break;
+                        case 'booked':
+                            i.status_cn = '预订'
+                            break;
+                        case 'occupied':
+                            i.status_cn = '入住'
+                            break;
+                        case 'dirty':
+                            i.status_cn = '待打扫'
+                            break;
+                    }
+                this.roomAll = response.data
+            })
+        }
+    })
+</script>

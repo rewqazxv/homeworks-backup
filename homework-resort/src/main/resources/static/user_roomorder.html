@@ -1,0 +1,173 @@
+<div id="app">
+    <table class="table table-hover">
+        <thead class="thead-light">
+        <tr>
+            <th>房间号</th>
+            <th>状态</th>
+            <th>入住时间</th>
+            <th>离开时间</th>
+            <th>温泉</th>
+            <th>总账单</th>
+            <th>我的评论</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="i in roomorderMine">
+            <td>{{ i.roomnum }}</td>
+            <td>{{ i.outtime !== null ? '历史' : roomMine.get(i.roomnum).status === 'booked' ? '预订' :
+                roomMine.get(i.roomnum).status === 'occupied' ? '入住' : '错误' }}
+            </td>
+            <td>{{ i.intime }}</td>
+            <td>{{ i.outtime }}</td>
+            <td>{{ i.spa ? '✓' : '✗' }}</td>
+            <td>{{ i.totalprice !== 0 ? i.totalprice : '' }}</td>
+            <td>{{ i.comment }}</td>
+            <td>
+                <button class="btn btn-primary"
+                        :hidden="i.outtime !== null || roomMine.get(i.roomnum).status !== 'booked'"
+                        data-toggle="modal" data-target="#changeRoomModal" :data-oldnum="i.roomnum">
+                    换房
+                </button>
+                <button class="btn btn-danger"
+                        :hidden="i.outtime !== null || roomMine.get(i.roomnum).status !== 'occupied'"
+                        data-toggle="modal" data-target="#checkoutModal" :data-roomnum="i.roomnum">
+                    退房
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="modal fade" id="changeRoomModal" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">选择要更换的房间</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <span id="oldnum" hidden></span>
+                    <form class="form-group">
+                        <label>选择新房间：</label>
+                        <select id="newnum" class="form-control">
+                            <option v-for="i in roomEmpty" v-bind:value="i.roomnum">
+                                {{ i.roomnum + " (" + i.roomtype + ")" + ', ￥' + i.price + ', 温泉￥' + i.spaprice }}
+                            </option>
+                        </select>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" @click="change">
+                        更换
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="checkoutModal" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="checkoutTitle"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <span id="checkoutnum" hidden></span>
+                    <form class="form-group">
+                        <label>您对本次住宿评价如何：</label>
+                        <textarea class="form-control" id="checkoutComment"></textarea>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" @click="checkout">
+                        退房
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            roomorderMine: null,
+            roomMine: null,
+            roomEmpty: null
+        },
+        methods: {
+            change: function () {
+                var data = {
+                    newRoomNum: $("#newnum").val()
+                }
+                var oldnum = $("#oldnum").text()
+                axios.put('user/room/' + oldnum, data)
+                    .then(function (response) {
+                        alert("更换房间成功")
+                        app.$mount()
+                    })
+                    .catch(function (error) {
+                        alert("发生错误：" + error.message)
+                    })
+            },
+            checkout: function () {
+                var roomnum = $("#checkoutnum").text()
+                var data = {
+                    comment: $("#checkoutComment").val()
+                }
+                axios.post('user/room/' + roomnum, data)
+                    .then(function (response) {
+                        alert("退房成功，消费 " + response.data + " 元。")
+                        app.$mount()
+                    })
+                    .catch(function (error) {
+                        alert("发生错误：" + error.message)
+                    })
+            }
+        },
+        mounted() {
+            axios.get('me/roomorder').then(response => {
+                var json = response.data
+                for (i of json) {
+                    i.intime = moment(i.intime).format('YYYY-MM-DD')
+                    if (i.outtime !== null) i.outtime = moment(i.outtime).format('YYYY-MM-DD')
+                }
+                this.roomorderMine = response.data
+            })
+            axios.get('me/room').then(response => {
+                var room = new Map()
+                for (i of response.data) {
+                    room.set(i.roomnum, i)
+                }
+                this.roomMine = room
+            })
+            axios.get('user/room/available').then(response => {
+                this.roomEmpty = response.data
+            })
+        }
+    })
+
+    $('#changeRoomModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget)
+        var oldnum = button.data('oldnum')
+        var modal = $(this)
+        modal.find('#oldnum').text(oldnum)
+    })
+
+    $('#checkoutModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget)
+        var roomnum = button.data('roomnum')
+        $("#checkoutTitle").text("确认退房 " + roomnum + " 吗？")
+        var modal = $(this)
+        modal.find('#checkoutnum').text(roomnum)
+    })
+</script>
